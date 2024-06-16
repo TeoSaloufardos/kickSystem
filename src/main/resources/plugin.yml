@@ -1,0 +1,4 @@
+name: kickSystem
+version: '${project.version}'
+main: plugin.kicksystem.KickSystem
+api-version: '1.20'
