@@ -2,6 +2,7 @@ package plugin.kicksystem;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -37,14 +38,15 @@ public class KickSystem extends JavaPlugin implements Listener {
                     int result = a + b;
                     UUID playerId = player.getUniqueId();
                     activeChallenges.put(playerId, new MathChallenge(player, result));
-                    player.sendMessage(ChatColor.GREEN + "This is a message from anti AFK farm system, please solve this math problem within 2 mins (Write your answer in the chat): " + a + " + " + b + " = ?");
+                    player.sendMessage(Color.GREEN + "This is a message from anti AFK farm system, please solve this math problem within 2 mins (Write your answer in the chat): " + a + " + " + b + " = ?");
 
                     // Schedule a task to kick the player if they don't answer within 2 minutes
                     new BukkitRunnable() {
                         @Override
                         public void run() {
                             if (activeChallenges.containsKey(playerId)) {
-                                player.kickPlayer("You did not answer the math question in time! You have been kicked from the anti AFK farm system.");
+                                player.kickPlayer(Color.RED + "You did not answer the math question in time! You have been kicked from the anti AFK farm system.");
+                                System.out.println(Color.BLUE + "Player: " + player + " has been kicked due to inactivity. (Didn't answer)" );
                                 activeChallenges.remove(playerId);
                             }
                         }
@@ -63,13 +65,14 @@ public class KickSystem extends JavaPlugin implements Listener {
                 int answer = Integer.parseInt(event.getMessage());
                 MathChallenge challenge = activeChallenges.get(playerId);
                 if (answer == challenge.getResult()) {
-                    player.sendMessage(ChatColor.GREEN + "Correct answer! You can keep playing.");
+                    player.sendMessage(Color.GREEN + "Correct answer! You can keep playing.");
                 } else {
-                    Bukkit.getScheduler().runTask(this, () -> player.kickPlayer("Wrong answer! You have been kicked from the AFK farm system."));
+                    Bukkit.getScheduler().runTask(this, () -> player.kickPlayer(Color.RED + "Wrong answer! You have been kicked from the AFK farm system."));
+                    System.out.println(Color.BLUE + "Player: " + player + " has been kicked due to inactivity. (Wrong answer)" );
                 }
                 activeChallenges.remove(playerId);
             } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "Please enter a valid number.");
+                player.sendMessage(Color.RED + "Please enter a valid number.");
             }
             event.setCancelled(true); // Prevent the message from being shown in the public chat
         }
