@@ -12,6 +12,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.Console;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -38,19 +39,19 @@ public class KickSystem extends JavaPlugin implements Listener {
                     int result = a + b;
                     UUID playerId = player.getUniqueId();
                     activeChallenges.put(playerId, new MathChallenge(player, result));
-                    player.sendMessage(Color.GREEN + "This is a message from anti AFK farm system, please solve this math problem within 2 mins (Write your answer in the chat): " + a + " + " + b + " = ?");
+                    player.sendMessage("\n\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW +"]===============" + "\n\n" +ChatColor.RED + "This is a message from anti AFK farming system, please solve this math problem within 4 mins (Write your answer in the chat.): " + a + " + " + b + " = ?" + "\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW +"]===============" + "\n\n\n");
 
                     // Schedule a task to kick the player if they don't answer within 2 minutes
                     new BukkitRunnable() {
                         @Override
                         public void run() {
                             if (activeChallenges.containsKey(playerId)) {
-                                player.kickPlayer(Color.RED + "You did not answer the math question in time! You have been kicked from the anti AFK farm system.");
-                                System.out.println(Color.BLUE + "Player: " + player + " has been kicked due to inactivity. (Didn't answer)" );
+                                player.kickPlayer("\n" + ChatColor.YELLOW + "===============[!]===============" + "\n" +ChatColor.RED + "You did not answer the math question in time! You have been kicked from the anti AFK farm system." + "\n" + ChatColor.YELLOW + "===============[!]===============" + "\n");
+                                System.out.println(ChatColor.BLUE + "Player: " + player + " has been kicked due to inactivity. (Didn't answer)" );
                                 activeChallenges.remove(playerId);
                             }
                         }
-                    }.runTaskLater(KickSystem.this, 2400L); // 2400 ticks = 2 minutes
+                    }.runTaskLater(KickSystem.this, 2400L); // 4800 ticks = 4 minutes
                 }
             }
         }.runTaskTimer(this, 0L, 72000L); // 72000 ticks = 1 hour
@@ -65,14 +66,14 @@ public class KickSystem extends JavaPlugin implements Listener {
                 int answer = Integer.parseInt(event.getMessage());
                 MathChallenge challenge = activeChallenges.get(playerId);
                 if (answer == challenge.getResult()) {
-                    player.sendMessage(Color.GREEN + "Correct answer! You can keep playing.");
+                    player.sendMessage(ChatColor.GREEN + "Correct answer! You can keep playing.");
                 } else {
-                    Bukkit.getScheduler().runTask(this, () -> player.kickPlayer(Color.RED + "Wrong answer! You have been kicked from the AFK farm system."));
-                    System.out.println(Color.BLUE + "Player: " + player + " has been kicked due to inactivity. (Wrong answer)" );
+                    Bukkit.getScheduler().runTask(this, () -> player.kickPlayer(ChatColor.RED + "Wrong answer! You have been kicked from the AFK farm system."));
+                    System.out.println(ChatColor.BLUE + "Player: " + player + " has been kicked due to inactivity. (Wrong answer)" );
                 }
                 activeChallenges.remove(playerId);
             } catch (NumberFormatException e) {
-                player.sendMessage(Color.RED + "Please enter a valid number.");
+                player.sendMessage(ChatColor.RED + "Please enter a valid number.");
             }
             event.setCancelled(true); // Prevent the message from being shown in the public chat
         }
