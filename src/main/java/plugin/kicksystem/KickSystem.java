@@ -1,5 +1,6 @@
 package plugin.kicksystem;
 
+import com.earth2me.essentials.Essentials;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -21,9 +22,13 @@ import java.util.UUID;
 public class KickSystem extends JavaPlugin implements Listener {
 
     private final Map<UUID, MathChallenge> activeChallenges = new HashMap<>();
+    private Essentials essentials;
 
     @Override
     public void onEnable() {
+        if (Bukkit.getPluginManager().getPlugin("Essentials") instanceof Essentials) {
+            essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
+        }
         Bukkit.getPluginManager().registerEvents(this, this);
         scheduleMathChallenges();
     }
@@ -34,24 +39,32 @@ public class KickSystem extends JavaPlugin implements Listener {
             public void run() {
                 Random random = new Random();
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    int a = random.nextInt(10) + 1;
-                    int b = random.nextInt(10) + 1;
-                    int result = a + b;
-                    UUID playerId = player.getUniqueId();
-                    activeChallenges.put(playerId, new MathChallenge(player, result));
-                    player.sendMessage("\n\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW +"]===============" + "\n\n" +ChatColor.RED + "This is a message from anti AFK farming system, please solve this math problem within 4 mins (Write your answer in the chat.): " + a + " + " + b + " = ?" + "\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW +"]===============" + "\n\n\n");
+                    if (!essentials.getUser(player).isAfk()) {
+                        int a = random.nextInt(1000) + 1;
+//                      int b = random.nextInt(10) + 1;
+//                      int result = a + b;
+                        String title = (ChatColor.RED + "Anti AFK Farming");
+                        String subtitle = (ChatColor.YELLOW + "Type in chat the following number:" + a);
+                        int fadeIn = 10;
+                        int fadeOut = 20;
+                        int stay = 240;
+                        player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+                        UUID playerId = player.getUniqueId();
+                        activeChallenges.put(playerId, new MathChallenge(player, a));
+                        player.sendMessage("\n\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW + "]===============" + "\n\n" + ChatColor.RED + "This is a message from anti AFK farming system, please write in the chat the following number: " + a + "\n\n" + ChatColor.YELLOW + "===============[" + ChatColor.DARK_RED + "!" + ChatColor.YELLOW + "]===============" + "\n\n\n");
 
-                    // Schedule a task to kick the player if they don't answer within 2 minutes
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (activeChallenges.containsKey(playerId)) {
-                                player.kickPlayer("\n" + ChatColor.YELLOW + "===============[!]===============" + "\n" +ChatColor.RED + "You did not answer the math question in time! You have been kicked from the anti AFK farm system." + "\n" + ChatColor.YELLOW + "===============[!]===============" + "\n");
-                                System.out.println(ChatColor.BLUE + "Player: " + player + " has been kicked due to inactivity. (Didn't answer)" );
-                                activeChallenges.remove(playerId);
+                        // Schedule a task to kick the player if they don't answer within 2 minutes
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if (activeChallenges.containsKey(playerId)) {
+                                    player.kickPlayer("\n" + ChatColor.YELLOW + "===============[!]===============" + "\n" + ChatColor.RED + "You did not answer the math question in time! You have been kicked from the anti AFK farm system." + "\n" + ChatColor.YELLOW + "===============[!]===============" + "\n");
+                                    System.out.println(ChatColor.BLUE + "Player: " + player + " has been kicked due to inactivity. (Didn't answer)");
+                                    activeChallenges.remove(playerId);
+                                }
                             }
-                        }
-                    }.runTaskLater(KickSystem.this, 2400L); // 4800 ticks = 4 minutes
+                        }.runTaskLater(KickSystem.this, 2400L); // 4800 ticks = 4 minutes
+                    }
                 }
             }
         }.runTaskTimer(this, 0L, 72000L); // 72000 ticks = 1 hour
